@@ -17,11 +17,12 @@ import {
   Briefcase,
   BookOpen,
   Mail,
-  Linkedin,
-  Github,
+  // Linkedin,
+  // Github,
   Globe,
   Users,
 } from "lucide-react";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
 
 // Updated API response type to match actual data
 interface TeamMemberAPI {
@@ -242,7 +243,7 @@ export default function OurTeamPage() {
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            <Linkedin className="h-3 w-3" />
+                            <FaLinkedin className="h-3 w-3" />
                           </a>
                         </Button>
                       )}
@@ -258,7 +259,7 @@ export default function OurTeamPage() {
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            <Github className="h-3 w-3" />
+                            <FaGithub className="h-3 w-3" />
                           </a>
                         </Button>
                       )}
