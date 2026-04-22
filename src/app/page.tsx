@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { SoftwareProductsSection } from "@/components/software/software-products";
-import HeroSection from "@/components/hero-section";
-import { ClientsSection } from "@/components/clients/clients-section";
+import HeroSection from "@/components/HeroSection";
+import { ClientsSection } from "@/components/clients/ClientsSection";
 import CoursesSection from "@/components/CoursesSection";
 
 

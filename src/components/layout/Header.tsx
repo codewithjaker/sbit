@@ -170,22 +170,16 @@ const modulesData = [
     icon: <FaBox />,
     submodules: [
       {
-        sub_module_id: 56,
-        sub_module_name: "POS & Inventory Software",
-        sub_module_icon: <FaBox />,
-        sub_module_display_name: "POS & Inventory Software",
-      },
-      {
         sub_module_id: 57,
         sub_module_name: "Ecommerce Software",
         sub_module_icon: <FaShoppingCart />,
         sub_module_display_name: "Ecommerce Software",
       },
       {
-        sub_module_id: 58,
-        sub_module_name: "Custom Software Development",
-        sub_module_icon: <FaLaptopCode />,
-        sub_module_display_name: "Custom Software Development",
+        sub_module_id: 56,
+        sub_module_name: "POS & Inventory Software",
+        sub_module_icon: <FaBox />,
+        sub_module_display_name: "POS & Inventory Software",
       },
       {
         sub_module_id: 59,
@@ -198,18 +192,6 @@ const modulesData = [
         sub_module_name: "Hospital Management Software",
         sub_module_icon: <FaHospital />,
         sub_module_display_name: "Hospital Management Software",
-      },
-      {
-        sub_module_id: 61,
-        sub_module_name: "Courier Software",
-        sub_module_icon: <FaTruck />,
-        sub_module_display_name: "Courier Software",
-      },
-      {
-        sub_module_id: 62,
-        sub_module_name: "Service Software",
-        sub_module_icon: <FaHeadset />,
-        sub_module_display_name: "Service Software",
       },
       {
         sub_module_id: 63,
@@ -240,24 +222,6 @@ const modulesData = [
         sub_module_name: "Retail POS Software",
         sub_module_icon: <FaQrcode />,
         sub_module_display_name: "Retail POS Software",
-      },
-      {
-        sub_module_id: 69,
-        sub_module_name: "Pharmacy POS",
-        sub_module_icon: <FaClipboardList />,
-        sub_module_display_name: "Pharmacy POS",
-      },
-      {
-        sub_module_id: 70,
-        sub_module_name: "Restaurant POS",
-        sub_module_icon: <FaUtensils />,
-        sub_module_display_name: "Restaurant POS",
-      },
-      {
-        sub_module_id: 72,
-        sub_module_name: "POS Scanner & Thermal Printer",
-        sub_module_icon: <FaQrcode />,
-        sub_module_display_name: "POS Scanner & Thermal Printer",
       },
     ],
   },
@@ -398,23 +362,23 @@ const modulesData = [
       },
       {
         sub_module_id: 90,
-        sub_module_name: "Professional Video Editing",
-        sub_module_icon: <FaVideoEditing />,
-        sub_module_display_name: "Professional Video Editing",
+        sub_module_name: "Basic Computer Skills",
+        sub_module_icon: <FaLaptop />,
+        sub_module_display_name: "Basic Computer Skills",
       },
       {
         sub_module_id: 91,
-        sub_module_name: "App Development",
+        sub_module_name: "Mobile App Development",
         sub_module_icon: <FaAppDev />,
-        sub_module_display_name: "App Development",
+        sub_module_display_name: "Mobile App Development",
       },
       {
         sub_module_id: 92,
-        sub_module_name: "Software Development",
+        sub_module_name: "Digital Marketing & SEO",
         sub_module_icon: <FaLaptop />,
-        sub_module_display_name: "Software Development",
+        sub_module_display_name: "Digital Marketing & SEO",
       },
-      
+
     ],
   },
 ];
