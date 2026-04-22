@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { SoftwareProductsSection } from "@/components/software/software-products";
+import { SoftwareProductsSection } from "@/components/software/SoftwareProductsSection";
 import HeroSection from "@/components/HeroSection";
 import { ClientsSection } from "@/components/clients/ClientsSection";
 import CoursesSection from "@/components/CoursesSection";

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Code, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { SoftwareCard, SoftwareProduct } from "./software-card";
+import { SoftwareCard, SoftwareProduct } from "./SoftwareCard";
 
 interface SoftwareAPIResponse {
   id: number;
