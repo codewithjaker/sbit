@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { SoftwareProductsSection } from "@/components/software/SoftwareProductsSection";
 import HeroSection from "@/components/HeroSection";
 import { ClientsSection } from "@/components/clients/ClientsSection";
@@ -8,7 +7,6 @@ import CoursesSection from "@/components/CoursesSection";
 
 
 export default function Home() {
-  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-background">

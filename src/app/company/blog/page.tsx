@@ -438,7 +438,7 @@ export default function BlogPage() {
                             <Button
                               asChild
                               variant="ghost"
-                              className="p-0 text-primary hover:bg-transparent hover:underline"
+                              className="p-0 text-orange-600 hover:underline"
                             >
                               <Link href={`/company/blog/${post.slug}`}>
                                 Read More <ArrowRight className="ml-2 h-4 w-4" />
@@ -538,7 +538,7 @@ export default function BlogPage() {
                               <Button
                                 asChild
                                 variant="ghost"
-                                className="p-0 text-primary hover:bg-transparent hover:underline"
+                               className="p-0 text-orange-600 hover:underline"
                               >
                                 <Link href={`/company/blog/${post.slug}`}>
                                   Read More <ArrowRight className="ml-2 h-4 w-4" />

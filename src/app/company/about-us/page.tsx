@@ -1,5 +1,7 @@
+// app/company/about/page.tsx
 "use client";
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,29 +11,61 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  ArrowRight,
-  Code,
   Users,
   Target,
-  Award,
-  Globe,
-  Clock,
   CheckCircle,
-  Star,
-  TrendingUp,
-  BookOpen,
-  Briefcase,
   Lightbulb,
   Shield,
-  UserCheck,
 } from "lucide-react";
 import Image from "next/image";
-import { TeamSection } from "@/components/about/TeamSection";
+
+// Type for milestone from API
+interface MilestoneAPI {
+  id: number;
+  year: string;
+  event: string;
+  description: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
 
 export default function AboutPage() {
+  const [milestones, setMilestones] = useState<MilestoneAPI[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  // Fetch milestones from API
+  useEffect(() => {
+    const fetchMilestones = async () => {
+      if (!baseUrl) {
+        console.error("Missing API URL");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await fetch(`${baseUrl}/about-milestones`);
+        if (!res.ok) throw new Error("Failed to fetch milestones");
+        const json = await res.json();
+        const data = json?.data?.data || [];
+        // Sort by sort_order ascending
+        const sorted = data.sort((a: MilestoneAPI, b: MilestoneAPI) => a.sort_order - b.sort_order);
+        setMilestones(sorted);
+      } catch (error) {
+        console.error("Error fetching milestones:", error);
+        // Keep milestones empty, timeline will show nothing
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMilestones();
+  }, [baseUrl]);
+
   const values = [
     {
       icon: Target,
@@ -59,46 +93,6 @@ export default function AboutPage() {
     },
   ];
 
-  const milestones = [
-    {
-      year: "2011",
-      event: "Company Founded",
-      description: "Started with 5 team members and 2 training courses",
-    },
-    {
-      year: "2012",
-      event: "First Enterprise Client",
-      description: "Secured major government software project",
-    },
-    {
-      year: "2017",
-      event: "Digital Transformation",
-      description: "Launched online learning platform during pandemic",
-    },
-    {
-      year: "2020",
-      event: "International Recognition",
-      description: "Awarded Best IT Training Institute in Bangladesh",
-    },
-    {
-      year: "2021",
-      event: "Expansion",
-      description: "Opened 3 new branches across the country",
-    },
-    {
-      year: "2025",
-      event: "AI Integration",
-      description: "Implemented AI-powered learning systems",
-    },
-  ];
-
-  const stats = [
-    { number: "5000+", label: "Students Trained", icon: Users },
-    { number: "150+", label: "Software Projects", icon: Code },
-    { number: "98%", label: "Success Rate", icon: TrendingUp },
-    { number: "450+", label: "Satisfied Clients", icon: UserCheck },
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -111,22 +105,6 @@ export default function AboutPage() {
             Pioneering software excellence through innovative training and
             cutting-edge development solutions since 2018.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button
-              size="lg"
-              className="bg-white text-primary hover:bg-white/90 font-semibold"
-            >
-              Our Story
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              // className="border-white text-white hover:bg-white hover:text-primary font-semibold"
-              className="border-primary text-primary hover:bg-primary hover:text-white font-semibold"
-            >
-              Meet Our Team
-            </Button>
-          </div>
         </div>
       </section>
 
@@ -185,34 +163,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-muted/50">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <Card
-                key={index}
-                className="text-center hover:shadow-lg transition-shadow"
-              >
-                <CardHeader>
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                    <stat.icon className="text-primary text-2xl" />
-                  </div>
-                  <CardTitle className="text-3xl font-bold text-primary">
-                    {stat.number}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-lg font-semibold">
-                    {stat.label}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Values Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
@@ -249,9 +199,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Team Section */}
-      {/* <TeamSection /> */}
-
       {/* Timeline Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
@@ -267,62 +214,70 @@ export default function AboutPage() {
               development institute.
             </p>
           </div>
-          <div className="relative">
-            {/* Timeline line */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 w-1 bg-primary/20 h-full"></div>
 
-            {milestones.map((milestone, index) => (
-              <div
-                key={index}
-                className={`flex items-center mb-12 ${
-                  index % 2 === 0 ? "flex-row" : "flex-row-reverse"
-                }`}
-              >
+          {loading ? (
+            // Skeleton loader for timeline
+            <div className="relative">
+              <div className="absolute left-1/2 transform -translate-x-1/2 w-1 bg-primary/20 h-full"></div>
+              {[1, 2, 3, 4].map((_, index) => (
                 <div
-                  className={`w-1/2 ${
-                    index % 2 === 0 ? "pr-12 text-right" : "pl-12"
-                  }`}
+                  key={index}
+                  className={`flex items-center mb-12 ${index % 2 === 0 ? "flex-row" : "flex-row-reverse"}`}
                 >
-                  <Card className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <Badge variant="outline" className="w-fit mb-2">
-                        {milestone.year}
-                      </Badge>
-                      <CardTitle className="text-xl">
-                        {milestone.event}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <CardDescription>{milestone.description}</CardDescription>
-                    </CardContent>
-                  </Card>
+                  <div className={`w-1/2 ${index % 2 === 0 ? "pr-12 text-right" : "pl-12"}`}>
+                    <Card>
+                      <CardHeader>
+                        <Skeleton className="h-4 w-16 mb-2" />
+                        <Skeleton className="h-6 w-32" />
+                      </CardHeader>
+                      <CardContent>
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-2/3 mt-2" />
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full bg-primary border-4 border-white shadow-lg"></div>
+                  <div className="w-1/2"></div>
                 </div>
-                <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full bg-primary border-4 border-white shadow-lg"></div>
-                <div className="w-1/2"></div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : milestones.length > 0 ? (
+            <div className="relative">
+              {/* Timeline line */}
+              <div className="absolute left-1/2 transform -translate-x-1/2 w-1 bg-primary/20 h-full"></div>
+
+              {milestones.map((milestone, index) => (
+                <div
+                  key={milestone.id}
+                  className={`flex items-center mb-12 ${index % 2 === 0 ? "flex-row" : "flex-row-reverse"}`}
+                >
+                  <div
+                    className={`w-1/2 ${index % 2 === 0 ? "pr-12 text-right" : "pl-12"}`}
+                  >
+                    <Card className="hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <Badge variant="outline" className="w-fit mb-2">
+                          {milestone.year}
+                        </Badge>
+                        <CardTitle className="text-xl">
+                          {milestone.event}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <CardDescription>{milestone.description}</CardDescription>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full bg-primary border-4 border-white shadow-lg"></div>
+                  <div className="w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground">No milestones available.</p>
+          )}
         </div>
       </section>
-
-      {/* CTA Section */}
-      {/* <section className="py-16 bg-primary text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Join Our Growing Community</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto text-white/90">
-            Whether you're looking to enhance your skills or develop custom software solutions, 
-            we're here to help you succeed in the digital world.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold">
-              Explore Courses
-            </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary font-semibold">
-              Contact Our Team
-            </Button>
-          </div>
-        </div>
-      </section> */}
     </div>
   );
 }
