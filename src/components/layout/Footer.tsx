@@ -12,8 +12,7 @@ const socialLinks = [
 
 const quickLinks = [
   { href: "/", label: "Home" },
-  { href: "/courses", label: "Courses" },
-  { href: "/software", label: "Software Products" },
+  { href: "/our_team", label: "Our Team" },
   { href: "/company/about-us", label: "About Us" },
   { href: "/company/contact", label: "Contact" },
 ];

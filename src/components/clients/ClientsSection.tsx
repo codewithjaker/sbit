@@ -9,85 +9,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, MapPin, Code } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-
-// API response types
-interface ClientAPI {
-  id: number;
-  name: string;
-  image: string | null;
-  category: string;
-  url: string | null;
-  location: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-interface ClientsResponse {
-  status_code: number;
-  data: {
-    current_page: number;
-    data: ClientAPI[];
-    last_page: number;
-    total: number;
-  };
-}
-
-// UI-friendly client shape
-interface UIClient {
-  id: number;
-  name: string;
-  image: string;
-  location: string;
-  url?: string;
-}
-
-async function fetchAllClients(): Promise<UIClient[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-  const imageBasePath = process.env.NEXT_PUBLIC_IMAGE_PATH || "";
-
-  if (!baseUrl) return [];
-
-  const allClients: ClientAPI[] = [];
-  let currentPage = 1;
-  let hasMore = true;
-
-  try {
-    while (hasMore) {
-      const res = await fetch(`${baseUrl}/our-happy-clients?page=${currentPage}`, {
-        cache: "no-store",
-      });
-      if (!res.ok) break;
-      const json: ClientsResponse = await res.json();
-      const pageData = json?.data;
-      const clients = pageData?.data || [];
-      allClients.push(...clients);
-      hasMore = pageData?.current_page < pageData?.last_page;
-      currentPage++;
-    }
-
-    return allClients.map((client) => ({
-      id: client.id,
-      name: client.name,
-      image: client.image
-        ? `${imageBasePath}${client.image}`
-        : "/placeholder-client.png",
-      location: client.location || "",
-      url: client.url || undefined,
-    }));
-  } catch (error) {
-    console.error("Failed to fetch clients:", error);
-    return [];
-  }
-}
+import { fetchAllClients } from "@/services/client.service";
+import type { Client } from "@/types/client";
 
 export function ClientsSection() {
   const router = useRouter();
-  const [clients, setClients] = useState<UIClient[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadClients = async () => {
-      const data = await fetchAllClients();
+      const data = await fetchAllClients(); // already sorted by order_by
       setClients(data);
       setLoading(false);
     };
