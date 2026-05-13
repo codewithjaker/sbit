@@ -5,8 +5,9 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import TawkChat from "@/components/TawkChat";
 import { cn } from "@/lib/utils";
+import WhatsAppButton from "../components/WhatsAppButton";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,8 +30,9 @@ export default function RootLayout({
         <div className="min-h-screen flex flex-col">
           <Header />
           <main className="flex-1">{children}</main>
-            <TawkChat />
+          <TawkChat />
           <Footer />
+          <WhatsAppButton />
         </div>
       </body>
     </html>

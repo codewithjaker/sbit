@@ -1,5 +1,5 @@
 // app/software/[slug]/page.tsx
-import { getSoftwareProducts } from "@/lib/api/software";
+import { getSoftwareProducts } from "@/services/software.service";
 // import { SoftwareDetailClient } from "./client";
 import { SoftwareDetailClient } from "./SoftwareDetailClient";
 

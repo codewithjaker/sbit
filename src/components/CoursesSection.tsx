@@ -153,7 +153,7 @@ export default function CoursesSection() {
                 key={course.id}
                 className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 pt-0"
               >
-                <div className="h-48 overflow-hidden">
+                <div className="h-54 overflow-hidden">
                   <Image
                     src={course.image}
                     alt={course.title}
@@ -171,11 +171,11 @@ export default function CoursesSection() {
                   <CardDescription className="mb-4 line-clamp-3">
                     {course.description}
                   </CardDescription>
-                  {course.duration && (
+                  {/* {course.duration && (
                     <p className="text-sm text-muted-foreground mb-2">
                       Duration: {course.duration}
                     </p>
-                  )}
+                  )} */}
                   <Button
                     variant="ghost"
                     className="p-0 text-primary hover:bg-transparent hover:underline cursor-pointer"
@@ -189,7 +189,7 @@ export default function CoursesSection() {
           </div>
         )}
 
-        <div className="text-center">
+        {/* <div className="text-center">
           <Button
             onClick={() => router.push(`/courses`)}
             variant="outline"
@@ -198,7 +198,7 @@ export default function CoursesSection() {
           >
             View All Courses <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
-        </div>
+        </div> */}
       </div>
     </section>
   );

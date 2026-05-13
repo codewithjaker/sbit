@@ -17,124 +17,12 @@ import {
   Briefcase,
   BookOpen,
   Mail,
-  // Linkedin,
-  // Github,
   Globe,
   Users,
 } from "lucide-react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
-
-// Updated API response type to match actual data
-interface TeamMemberAPI {
-  id: string;
-  name: string;
-  role: string;
-  image: string | null;
-  email: string | null;
-  phone: string | null;
-  joinDate: string;
-  bio: string | null;
-  expertise: string[];
-  education: { degree: string; institution: string; year: string }[];
-  experience: {
-    position: string;
-    company: string;
-    period: string;
-    description: string;
-  }[];
-  achievements: string[];
-  social?: {
-    github?: string;
-    linkedin?: string;
-    facebook?: string;
-    website?: string;
-  };
-  availability: string;
-  isActive: boolean;
-  order: number;
-}
-
-// UI-friendly shape for a team member card
-interface TeamMemberCard {
-  id: string;
-  name: string;
-  role: string;
-  image: string;
-  initials: string;
-  expertise: string;
-  email: string;
-  social: {
-    linkedin: string;
-    github: string;
-    website: string;
-    email: string;
-  };
-}
-
-async function fetchAllTeamMembers(): Promise<TeamMemberCard[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-  const imageBasePath = process.env.NEXT_PUBLIC_IMAGE_PATH!;
-
-  if (!baseUrl) {
-    console.error("❌ NEXT_PUBLIC_API_URL is missing");
-    return [];
-  }
-
-  const allMembers: TeamMemberAPI[] = [];
-  let currentUrl: string | null = `${baseUrl}/team-members?page=1`;
-
-  try {
-    while (currentUrl) {
-      const res = await fetch(currentUrl, { cache: "no-store" });
-
-      if (!res.ok) {
-        console.error("❌ API failed:", res.status);
-        break;
-      }
-
-      const json = await res.json();
-      const pageData = json?.data;
-
-      if (pageData?.data) {
-        allMembers.push(...pageData.data);
-      }
-
-      currentUrl = pageData?.next_page_url || null;
-    }
-
-    const activeMembers = allMembers.filter((m) => m.isActive);
-
-    return activeMembers.map((m) => {
-      const initials = m.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-
-      return {
-        id: m.id,
-        name: m.name,
-        role: m.role,
-        image: m.image
-          ? `${imageBasePath}${m.image}`
-          : "/placeholder-avatar.jpg",
-        initials,
-        expertise: m.expertise?.[0] || m.role,
-        email: m.email || "info@sbit.com.bd",
-        social: {
-          linkedin: m.social?.linkedin || "#",
-          github: m.social?.github || "#",
-          website: m.social?.website || "#",
-          email: m.email || "info@sbit.com.bd",
-        },
-      };
-    });
-  } catch (error) {
-    console.error("❌ Fetch error:", error);
-    return [];
-  }
-}
+import { fetchAllTeamMembers } from "@/services/team.service";
+import type { TeamMemberCard } from "@/types/team";
 
 export default function OurTeamPage() {
   const [members, setMembers] = useState<TeamMemberCard[]>([]);
@@ -149,7 +37,7 @@ export default function OurTeamPage() {
     loadMembers();
   }, []);
 
-  // Skeleton loading state (mimics gallery pattern)
+  // Skeleton loading
   if (loading) {
     return (
       <div className="space-y-6">
@@ -224,7 +112,6 @@ export default function OurTeamPage() {
                       <CardDescription className="font-semibold text-primary">
                         {member.role}
                       </CardDescription>
-
                     </div>
                   </CardHeader>
 

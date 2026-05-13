@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { getSoftwareProducts, Software } from "@/lib/api/software";
+import { getSoftwareProducts, Software } from "@/services/software.service";
 
 export function SoftwareDetailClient() {
   const params = useParams();

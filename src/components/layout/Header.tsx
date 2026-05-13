@@ -342,12 +342,7 @@ const modulesData = [
     module_name: "Courses",
     icon: <FaGraduationCap />,
     submodules: [
-      {
-        sub_module_id: 87,
-        sub_module_name: "Mastering Nodejs",
-        sub_module_icon: <FaCode />,
-        sub_module_display_name: "Mastering Nodejs",
-      },
+
       {
         sub_module_id: 88,
         sub_module_name: "Full Stack Web Development",
@@ -378,9 +373,22 @@ const modulesData = [
         sub_module_icon: <FaLaptop />,
         sub_module_display_name: "Digital Marketing & SEO",
       },
+      {
+        sub_module_id: 87,
+        // "slug": "uiux-design-masterclass",
+        sub_module_name: "UIUX Design Masterclass",
+        sub_module_icon: <FaCode />,
+        sub_module_display_name: "UIUX Design Masterclass",
+      },
 
     ],
   },
+  // {
+  //   module_id: 44,
+  //   module_name: "Our Team",
+  //   icon: <FaTeamspeak />,
+  //   submodules: []
+  // },
 ];
 
 // Helper: generate slug from text (lowercase, replace spaces with hyphens)
@@ -598,7 +606,17 @@ export default function Header() {
         {/* Desktop Admission Button */}
         <div className="hidden lg:flex items-center space-x-4">
           <Button
-            onClick={() => router.push("/software-demo")}
+           onClick={() => router.push("/our_team")}
+            
+            variant="outline"
+            // className="bg-orange-500 hover:bg-orange-600 text-sm font-semibold cursor-pointer hover:opacity-90 transition-opacity"
+            className="border-orange-500 hover:border-orange-600 text-sm font-semibold cursor-pointer  "
+          >
+            <FaTeamspeak  className="h-5 w-5 text-orange-500 hover:text-orange-600" />
+
+          </Button>
+          <Button
+           onClick={() => router.push("/software-demo")}
             variant="outline"
             // className="bg-orange-500 hover:bg-orange-600 text-sm font-semibold cursor-pointer hover:opacity-90 transition-opacity"
             className="border-orange-500 hover:border-orange-600 text-sm font-semibold cursor-pointer  "

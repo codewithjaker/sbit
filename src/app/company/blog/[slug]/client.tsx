@@ -18,7 +18,7 @@ import {
   Bookmark,
   Tag,
 } from "lucide-react";
-import { fetchAllBlogs, fetchBlogCategories } from "@/lib/api/blog";
+import { fetchAllBlogs, fetchBlogCategories } from "@/services/blog.service";
 
 interface BlogData {
   id: number;

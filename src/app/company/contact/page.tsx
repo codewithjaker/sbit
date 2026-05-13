@@ -1,6 +1,7 @@
+// app/contact/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -30,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import {
   MapPin,
   Phone,
@@ -39,24 +39,21 @@ import {
   Send,
   CheckCircle,
   AlertCircle,
-  BookOpen,
-  Coffee,
-  Wifi,
-  Users,
-  Info,
   Navigation,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-// Validation schema
+// Validation schema – note courseId is a string (but will be sent as number)
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.email("Please enter a valid email address"),
+  email: z.string().email("Please enter a valid email address"),
   phone: z
     .string()
     .min(11, "Phone number must be at least 11 digits")
     .regex(/^[0-9+\-\s()]+$/, "Please enter a valid phone number"),
-  subject: z.string().min(5, "Subject must be at least 5 characters"),
-  course: z.string().min(1, "Please select a course or service"),
+  subject: z.string().min(3, "Subject must be at least 3 characters"),
+  courseId: z.string().min(1, "Please select a course or service"),
   message: z
     .string()
     .min(10, "Message must be at least 10 characters")
@@ -65,8 +62,38 @@ const contactFormSchema = z.object({
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
 
+// Type for course options
+interface CourseOption {
+  id: number;
+  title: string;
+}
+
 export default function ContactPage() {
+  const [courses, setCourses] = useState<CourseOption[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  // Fetch courses for the dropdown
+  useEffect(() => {
+    const fetchCourses = async () => {
+      if (!baseUrl) return;
+      try {
+        const res = await fetch(`${baseUrl}/courses?page=1`);
+        if (!res.ok) throw new Error("Failed to fetch courses");
+        const json = await res.json();
+        const data = json?.data?.data || [];
+        setCourses(data.map((c: any) => ({ id: c.id, title: c.title })));
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      } finally {
+        setCoursesLoading(false);
+      }
+    };
+    fetchCourses();
+  }, [baseUrl]);
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -75,24 +102,56 @@ export default function ContactPage() {
       email: "",
       phone: "",
       subject: "",
-      course: "",
+      courseId: "",
       message: "",
     },
     mode: "onChange",
   });
 
   const onSubmit = async (data: ContactFormValues) => {
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    if (!baseUrl) {
+      setSubmissionError("API URL is not configured");
+      return;
+    }
 
-    console.log("Form data:", data);
-    setIsSubmitted(true);
+    setSubmissionError(null);
 
-    // Reset form after success
-    setTimeout(() => {
-      setIsSubmitted(false);
+    // Prepare payload matching API expected fields
+    const payload = {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      subject: data.subject,
+      course_id: Number(data.courseId), // convert to number as API expects integer
+      message: data.message,
+    };
+
+    try {
+      // Note: The example was a GET request but it's clearly a creation endpoint;
+      // we'll use POST as it's standard for creating resources.
+      const res = await fetch(`${baseUrl}/contacts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || result.status === "error") {
+        throw new Error(result.message || "Failed to send message");
+      }
+
+      // Success
+      setIsSubmitted(true);
       form.reset();
-    }, 5000);
+      setTimeout(() => setIsSubmitted(false), 5000);
+    } catch (error: any) {
+      console.error("Contact form error:", error);
+      setSubmissionError(error.message || "An unexpected error occurred. Please try again.");
+    }
   };
 
   const contactInfo = [
@@ -122,19 +181,6 @@ export default function ContactPage() {
     },
   ];
 
-  const courses = [
-    "Web Development",
-    "Graphic Design",
-    "Digital Marketing",
-    "Mobile App Development",
-    "Data Science",
-    "UI/UX Design",
-    "DevOps & Cloud",
-    "Software Project Management",
-    "Career Consultation",
-    "Other",
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -156,12 +202,7 @@ export default function ContactPage() {
             <div className="lg:col-span-1">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-2xl">
-                    Contact Information
-                  </CardTitle>
-                  {/* <CardDescription>
-                    Get in touch with us through any of the following channels
-                  </CardDescription> */}
+                  <CardTitle className="text-2xl">Contact Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {contactInfo.map((info, index) => (
@@ -171,59 +212,29 @@ export default function ContactPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-lg">{info.title}</h3>
-                        <p className="text-muted-foreground font-medium">
-                          {info.details}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {info.description}
-                        </p>
+                        <p className="text-muted-foreground font-medium">{info.details}</p>
+                        <p className="text-sm text-muted-foreground">{info.description}</p>
                       </div>
                     </div>
                   ))}
-
-                  {/* <div className="pt-4 border-t">
-                    <h4 className="font-semibold mb-3">
-                      Why Choose Skill Based IT?
-                    </h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-sm">
-                          Government Approved Courses
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-sm">Industry Expert Mentors</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-sm">
-                          Job Placement Assistance
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-sm">Free Career Counseling</span>
-                      </div>
-                    </div>
-                  </div> */}
                 </CardContent>
               </Card>
             </div>
 
-            {/* Contact Form & Map */}
+            {/* Contact Form */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Contact Form */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-2xl">Send us a Message</CardTitle>
-                  {/* <CardDescription>
-                    Fill out the form below and we'll get back to you within 24
-                    hours
-                  </CardDescription> */}
                 </CardHeader>
                 <CardContent>
+                  {submissionError && (
+                    <Alert variant="destructive" className="mb-6">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{submissionError}</AlertDescription>
+                    </Alert>
+                  )}
+
                   {isSubmitted ? (
                     <div className="text-center py-8">
                       <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
@@ -233,8 +244,7 @@ export default function ContactPage() {
                         Message Sent Successfully!
                       </h3>
                       <p className="text-muted-foreground">
-                        Thank you for contacting Skill Based IT. We'll get back
-                        to you soon.
+                        Thank you for contacting Skill Based IT. We'll get back to you soon.
                       </p>
                     </div>
                   ) : (
@@ -251,10 +261,7 @@ export default function ContactPage() {
                               <FormItem>
                                 <FormLabel>Full Name *</FormLabel>
                                 <FormControl>
-                                  <Input
-                                    placeholder="Enter your full name"
-                                    {...field}
-                                  />
+                                  <Input placeholder="Enter your full name" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -287,10 +294,7 @@ export default function ContactPage() {
                               <FormItem>
                                 <FormLabel>Phone Number *</FormLabel>
                                 <FormControl>
-                                  <Input
-                                    placeholder="+880 1840-241895"
-                                    {...field}
-                                  />
+                                  <Input placeholder="+880 1XXX-XXXXXX" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -316,27 +320,34 @@ export default function ContactPage() {
 
                         <FormField
                           control={form.control}
-                          name="course"
+                          name="courseId"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Interested In *</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select a course or service" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {courses.map((course) => (
-                                    <SelectItem key={course} value={course}>
-                                      {course}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              {coursesLoading ? (
+                                <Skeleton className="h-10 w-full" />
+                              ) : (
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Select a course or service" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {courses.map((course) => (
+                                      <SelectItem
+                                        key={course.id}
+                                        value={course.id.toString()}
+                                      >
+                                        {course.title}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
                               <FormMessage />
                             </FormItem>
                           )}
@@ -356,10 +367,6 @@ export default function ContactPage() {
                                 />
                               </FormControl>
                               <FormMessage />
-                              {/* <div className="flex justify-between text-sm text-muted-foreground">
-                                <span>Minimum 10 characters</span>
-                                <span>{field.value.length}/500</span>
-                              </div> */}
                             </FormItem>
                           )}
                         />
@@ -368,8 +375,7 @@ export default function ContactPage() {
                           type="submit"
                           className="w-full bg-primary hover:bg-primary/90"
                           disabled={
-                            form.formState.isSubmitting ||
-                            !form.formState.isValid
+                            form.formState.isSubmitting || !form.formState.isValid
                           }
                         >
                           {form.formState.isSubmitting ? (
@@ -384,24 +390,18 @@ export default function ContactPage() {
                             </>
                           )}
                         </Button>
-
-                        {/* <p className="text-sm text-muted-foreground text-center">
-                          By submitting this form, you agree to our privacy
-                          policy and terms of service.
-                        </p> */}
                       </form>
                     </Form>
                   )}
                 </CardContent>
               </Card>
-
-              {/* Map Section */}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="container mx-auto px-4">
+      {/* Campus Maps */}
+      <section className="container mx-auto px-4 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Feni Campus */}
           <Card className="h-full">
@@ -411,11 +411,10 @@ export default function ContactPage() {
                 Feni Branch
               </CardTitle>
               <CardDescription>
-                Located in the heart of Feni with easy access to public
-                transportation
+                Located in the heart of Feni with easy access to public transportation
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               <div className="aspect-video rounded-lg overflow-hidden border">
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3689.869036442005!2d91.39531447517394!3d22.286919739384!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30acf8a2a7e1c85d%3A0x4a3e267dfddc6b3d!2sFeni%2C%20Bangladesh!5e0!3m2!1sen!2sbd!4v1698765432100!5m2!1sen!2sbd"
@@ -429,77 +428,6 @@ export default function ContactPage() {
                   className="w-full h-full min-h-[300px]"
                 />
               </div>
-              {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-sm md:text-base">
-                    Campus Address
-                  </h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Grand Hoque Tower (3rd Floor)
-                    <br />
-                    Lift Key - 3, Mizan Road
-                    <br />
-                    Feni, Bangladesh
-                    <br />
-                    Postal Code: 4500
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-sm md:text-base">
-                    Transportation
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="secondary"
-                        className="text-xs font-normal"
-                      >
-                        Bus
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        5 min walk from main station
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="secondary"
-                        className="text-xs font-normal"
-                      >
-                        CNG
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        Available at campus gate
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="secondary"
-                        className="text-xs font-normal"
-                      >
-                        Parking
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        Free for students
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="w-4 h-4 text-muted-foreground" />
-                    <span className="font-medium">Open Hours:</span>
-                    <span className="text-muted-foreground">
-                      9:00 AM - 8:00 PM
-                    </span>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <Navigation className="w-4 h-4 mr-2" />
-                    Get Directions
-                  </Button>
-                </div>
-              </div> */}
             </CardContent>
           </Card>
 
@@ -514,7 +442,7 @@ export default function ContactPage() {
                 Prime location in Mirpur DOHS with modern facilities
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               <div className="aspect-video rounded-lg overflow-hidden border">
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3651.041240233085!2d90.34908367516766!3d23.778850087198447!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c78c2a8d1a15%3A0x4b01c8da5d1e3b5f!2sMirpur%20DOHS%2C%20Dhaka!5e0!3m2!1sen!2sbd!4v1698765432100!5m2!1sen!2sbd"
@@ -528,82 +456,9 @@ export default function ContactPage() {
                   className="w-full h-full min-h-[300px]"
                 />
               </div>
-              {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-sm md:text-base">
-                    Campus Address
-                  </h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    House #535, Road #8, Avenue #6
-                    <br />
-                    Mirpur DOHS, Dhaka
-                    <br />
-                    Bangladesh
-                    <br />
-                    Postal Code: 1216
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-sm md:text-base">
-                    Transportation
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="secondary"
-                        className="text-xs font-normal"
-                      >
-                        Metro
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        10 min from Mirpur-10 station
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="secondary"
-                        className="text-xs font-normal"
-                      >
-                        Bus
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        Multiple routes available
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="secondary"
-                        className="text-xs font-normal"
-                      >
-                        Parking
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        Secure parking facility
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="w-4 h-4 text-muted-foreground" />
-                    <span className="font-medium">Open Hours:</span>
-                    <span className="text-muted-foreground">
-                      8:00 AM - 9:00 PM
-                    </span>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <Navigation className="w-4 h-4 mr-2" />
-                    Get Directions
-                  </Button>
-                </div>
-              </div> */}
             </CardContent>
           </Card>
         </div>
-
-
       </section>
 
       {/* Quick Action Section */}
@@ -612,8 +467,7 @@ export default function ContactPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Other Ways to Connect</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Can't visit in person? We offer multiple ways to get the
-              information you need.
+              Can't visit in person? We offer multiple ways to get the information you need.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

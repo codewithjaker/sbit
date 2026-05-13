@@ -14,8 +14,8 @@ const quickLinks = [
   { href: "/", label: "Home" },
   { href: "/courses", label: "Courses" },
   { href: "/software", label: "Software Products" },
-  { href: "/about", label: "About Us" },
-  { href: "/contact", label: "Contact" },
+  { href: "/company/about-us", label: "About Us" },
+  { href: "/company/contact", label: "Contact" },
 ];
 
 const contactItems = [
@@ -35,9 +35,19 @@ const contactItems = [
     content: "+880 1840-241895",
   },
   {
+    id: "phone",
+    icon: Phone,
+    content: "+880 1833-214944",
+  },
+  {
     id: "email",
     icon: Mail,
     content: "info@sbit.com.bd",
+  },
+  {
+    id: "email",
+    icon: Mail,
+    content: "skillbasedit@gmail.com",
   },
 ];
 

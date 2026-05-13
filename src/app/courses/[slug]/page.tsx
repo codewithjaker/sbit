@@ -1,5 +1,5 @@
 // app/courses/[slug]/page.tsx
-import { CourseDetailClient } from "./client";
+import { CourseDetailClient } from "./CourseDetailClient";
 
 export async function generateStaticParams() {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;

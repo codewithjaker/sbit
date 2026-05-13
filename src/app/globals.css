@@ -235,3 +235,37 @@ html, body {
   max-height: 400px;
   overflow-y: auto;
 }
+
+@theme {
+  --animate-float: float 1.2s ease-in-out infinite;
+
+  @keyframes float {
+    0% {
+      transform: translateY(0);
+    }
+
+    /* 🚀 BIG first bounce */
+    20% {
+      transform: translateY(-18px);
+    }
+
+    /* ⬇️ drop */
+    40% {
+      transform: translateY(0);
+    }
+
+    /* 🔁 smaller bounce */
+    60% {
+      transform: translateY(-10px);
+    }
+
+    /* tiny bounce */
+    80% {
+      transform: translateY(-4px);
+    }
+
+    100% {
+      transform: translateY(0);
+    }
+  }
+}
