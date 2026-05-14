@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import TawkChat from "@/components/TawkChat";
 import { cn } from "@/lib/utils";
 import WhatsAppButton from "../components/WhatsAppButton";
+import { WebsiteSettingsProvider } from "@/components/providers/website-provider";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -27,13 +28,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("font-sans", geist.variable)}>
       <body className={inter.className}>
-        <div className="min-h-screen flex flex-col">
-          <Header />
-          <main className="flex-1">{children}</main>
-          <TawkChat />
-          <Footer />
-          <WhatsAppButton />
-        </div>
+        <WebsiteSettingsProvider>
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1">{children}</main>
+            <TawkChat />
+            <Footer />
+            <WhatsAppButton />
+          </div>
+        </WebsiteSettingsProvider>
       </body>
     </html>
   );

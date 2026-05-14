@@ -1,28 +1,8 @@
-import { createContext, useContext } from "react";
+// context/website-context.tsx
+"use client";
 
-export interface WebsiteContent {
-  id: number;
-  logo: string;
-  banner: string;
-  title: string;
-  slogan: string;
-  favicon: string;
-  tax: number;
-  metaTitle: string;
-  metaDescription: string;
-  createdAt: Date;
-  updatedAt: Date;
-  sellerCenterLogo: string;
-  email: string;
-  phone: string;
-  supportPhone: string;
-  facebook: string;
-  instagram: string;
-  twitter: string;
-  youtube: string;
-  address: string;
-  map: string;
-}
+import { createContext, useContext } from "react";
+import type { WebsiteContent } from "@/types/website";
 
 interface WebsiteContextType {
   content: WebsiteContent | null;

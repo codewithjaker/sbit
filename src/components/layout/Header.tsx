@@ -63,6 +63,7 @@ import {
   FaDigitalOcean,
 } from "react-icons/fa";
 import { PiPresentationFill } from "react-icons/pi";
+import { useWebsite } from "@/context/website-context";
 
 // ========== Navigation Data with Icons and IDs ==========
 const modulesData = [
@@ -474,8 +475,12 @@ function MobileNavItem({ item, onClose }: { item: any; onClose: () => void }) {
 
 // ========== Main Header Component ==========
 export default function Header() {
+  const { content } = useWebsite();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  // Use dynamic logo from API, fallback to static
+  const logoSrc = content?.logo || "/logo.png";
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b">
@@ -483,7 +488,7 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" onClick={() => setOpen(false)}>
           <Image
-            src="/logo.png"
+            src={logoSrc}
             alt="sbit_logo"
             width={100}
             height={40}
@@ -606,17 +611,17 @@ export default function Header() {
         {/* Desktop Admission Button */}
         <div className="hidden lg:flex items-center space-x-4">
           <Button
-           onClick={() => router.push("/our_team")}
-            
+            onClick={() => router.push("/our_team")}
+
             variant="outline"
             // className="bg-orange-500 hover:bg-orange-600 text-sm font-semibold cursor-pointer hover:opacity-90 transition-opacity"
             className="border-orange-500 hover:border-orange-600 text-sm font-semibold cursor-pointer  "
           >
-            <FaTeamspeak  className="h-5 w-5 text-orange-500 hover:text-orange-600" />
+            <FaTeamspeak className="h-5 w-5 text-orange-500 hover:text-orange-600" />
 
           </Button>
           <Button
-           onClick={() => router.push("/software-demo")}
+            onClick={() => router.push("/software-demo")}
             variant="outline"
             // className="bg-orange-500 hover:bg-orange-600 text-sm font-semibold cursor-pointer hover:opacity-90 transition-opacity"
             className="border-orange-500 hover:border-orange-600 text-sm font-semibold cursor-pointer  "
@@ -646,7 +651,7 @@ export default function Header() {
             <div className="flex flex-col space-y-6 mt-8">
               <Link href="/" onClick={() => setOpen(false)}>
                 <Image
-                  src="/logo.png"
+                  src={logoSrc}
                   alt="sbit_logo"
                   width={100}
                   height={40}
