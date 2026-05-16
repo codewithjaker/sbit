@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, MapPin, Code } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { fetchAllClients } from "@/services/client.service";
+import { ClientCard } from "@/components/clients/ClientCard";
 import type { Client } from "@/types/client";
 
 export function ClientsSection() {
@@ -30,11 +30,14 @@ export function ClientsSection() {
   const displayClients = clients.slice(0, 8);
 
   return (
-    <section className="py-16 bg-gradient-to-b from-background to-muted/30">
+    <section className="py-16 bg-gradient-to-b from-orange-50/30 to-background">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <Badge variant="outline" className="mb-4 px-4 py-1 text-sm font-semibold">
+          <Badge
+            variant="outline"
+            className="mb-4 px-4 py-1 text-sm font-semibold border-orange-200 bg-orange-50 text-orange-700"
+          >
             <Code className="w-4 h-4 mr-2" />
             Our Valuable Clients
           </Badge>
@@ -42,7 +45,8 @@ export function ClientsSection() {
             Trusted by Businesses Worldwide
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            We are proud to have delivered exceptional software solutions to clients across various industries and countries.
+            We are proud to have delivered exceptional software solutions to
+            clients across various industries and countries.
           </p>
         </div>
 
@@ -62,42 +66,14 @@ export function ClientsSection() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
             {displayClients.map((client) => (
-              <div key={client.id} className="relative group">
+              <div key={client.id} className="relative group h-full">
                 <a
                   href={client.url || "#"}
                   target={client.url ? "_blank" : undefined}
                   rel={client.url ? "noopener noreferrer" : undefined}
                   className="h-full"
                 >
-                  <Card className="p-0 overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-xl h-full">
-                    <CardContent className="p-4 md:p-6 flex flex-col items-center h-full">
-                      {/* Logo Container */}
-                      <div className="relative w-24 h-24 md:w-32 md:h-32 mb-4 rounded-lg bg-gradient-to-br from-background to-muted/50 p-3 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                        <div className="relative w-full h-full flex items-center justify-center">
-                          <Image
-                            src={client.image}
-                            alt={client.name}
-                            width={120}
-                            height={120}
-                            className="object-contain max-w-full max-h-full"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Client Info */}
-                      <div className="text-center flex-1">
-                        <h3 className="font-semibold text-base md:text-lg mb-2 line-clamp-2">
-                          {client.name}
-                        </h3>
-                        {client.location && (
-                          <div className="flex items-center justify-center text-sm text-muted-foreground">
-                            <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                            <span className="line-clamp-1">{client.location}</span>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <ClientCard client={client} />
                 </a>
               </div>
             ))}
@@ -109,7 +85,7 @@ export function ClientsSection() {
             onClick={() => router.push(`/company/our-happy-clients`)}
             variant="outline"
             size="lg"
-            className="border-primary text-primary hover:bg-primary hover:text-white cursor-pointer"
+            className="border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white cursor-pointer transition-colors"
           >
             View Our All Happy Clients <ArrowRight className="ml-2 h-4 w-4" />
           </Button>

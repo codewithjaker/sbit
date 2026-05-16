@@ -352,9 +352,9 @@ const modulesData = [
       },
       {
         sub_module_id: 89,
-        sub_module_name: "Professional Graphics Design",
+        sub_module_name: "Professional Graphic Design",
         sub_module_icon: <FaPalette />,
-        sub_module_display_name: "Professional Graphics Design",
+        sub_module_display_name: "Professional Graphic Design",
       },
       {
         sub_module_id: 90,

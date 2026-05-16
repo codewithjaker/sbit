@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useRouter } from "next/navigation";
 
 // Validation schema – note courseId is a string (but will be sent as number)
 const contactFormSchema = z.object({
@@ -75,6 +76,8 @@ export default function ContactPage() {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  const router = useRouter();
 
   // Fetch courses for the dropdown
   useEffect(() => {
@@ -514,7 +517,7 @@ export default function ContactPage() {
                 <CardDescription className="mb-4">
                   Attend our weekly free seminar to learn more about our courses
                 </CardDescription>
-                <Button className="w-full bg-primary hover:bg-primary/90">
+                <Button onClick={()=> router.push("/company/seminar")} className="w-full bg-primary hover:bg-primary/90">
                   Register Now
                 </Button>
               </CardContent>

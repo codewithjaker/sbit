@@ -1,6 +1,5 @@
 // app/software/[slug]/page.tsx
 import { getSoftwareProducts } from "@/services/software.service";
-// import { SoftwareDetailClient } from "./client";
 import { SoftwareDetailClient } from "./SoftwareDetailClient";
 
 export async function generateStaticParams() {

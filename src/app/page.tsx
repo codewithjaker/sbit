@@ -3,7 +3,7 @@
 import { SoftwareProductsSection } from "@/components/software/SoftwareProductsSection";
 import HeroSection from "@/components/HeroSection";
 import { ClientsSection } from "@/components/clients/ClientsSection";
-import CoursesSection from "@/components/CoursesSection";
+import CoursesSection from "@/components/courses/CoursesSection";
 
 
 export default function Home() {

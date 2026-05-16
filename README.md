@@ -1,415 +1,297 @@
-// app/company/our-happy-clients/page.tsx
+// components/software/software-card.tsx
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Search,
-  Filter,
-  Building,
-  MapPin,
-  Globe,
-  Package,
-  Book,
-  Newspaper,
-} from "lucide-react";
-import { ClientCard } from "@/components/clients/ClientCard"; // Adjust path if needed
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, ArrowRight, Star, Users, Zap } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
-// API response types
-interface ClientAPI {
-  id: number;
-  name: string;
-  image: string | null;
-  category: string;
-  url: string | null;
-  location: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-interface ClientsResponse {
-  status_code: number;
-  data: {
-    current_page: number;
-    data: ClientAPI[];
-    last_page: number;
-    total: number;
-    per_page: number;
-  };
-}
-
-export type Client = {
-  id: number;
-  name: string;
+export interface SoftwareProduct {
+  slug: string;                // This should be the slug
+  title: string;
+  description: string;
+  fullDescription?: string;
   image: string;
   category: string;
-  url?: string;
-  location?: string;
-};
+  price?: string;
+  originalPrice?: string;
+  badge?: string;
+  features: string[];
+  rating?: number;
+  users?: string;
+  technologies?: string[];
+  deployment?: string;
+  support?: string;
+  demoUrl?: string;
+  documentationUrl?: string;
+  isFeatured?: boolean;
+  isNew?: boolean;
+  isBestseller?: boolean;
+}
 
-export default function OurHappyClientsPage() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+export function SoftwareCard({ product }: { product: SoftwareProduct }) {
+  const router = useRouter();
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL!;
-  const imageBasePath = process.env.NEXT_PUBLIC_IMAGE_PATH!;
+  const handleLearnMore = () => {
+    router.push(`/software/${product.slug}`);
+  };
 
-  // Fetch all clients (all pages)
-  useEffect(() => {
-    const fetchAllClients = async () => {
-      if (!baseUrl) {
-        console.error("Missing API URL");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        // Fetch first page to get pagination info
-        const firstRes = await fetch(`${baseUrl}/our-happy-clients?page=1`, {
-          cache: "no-store",
-        });
-        if (!firstRes.ok) throw new Error("Failed to fetch");
-        const firstJson: ClientsResponse = await firstRes.json();
-        const firstPageData = firstJson.data;
-
-        let allClientsData: ClientAPI[] = firstPageData.data || [];
-
-        // If more pages, fetch them in parallel
-        const lastPage = firstPageData.last_page;
-        if (lastPage > 1) {
-          const pagePromises = [];
-          for (let page = 2; page <= lastPage; page++) {
-            pagePromises.push(
-              fetch(`${baseUrl}/our-happy-clients?page=${page}`, {
-                cache: "no-store",
-              }).then((res) => res.json())
-            );
-          }
-          const additionalPages = await Promise.all(pagePromises);
-          additionalPages.forEach((json: ClientsResponse) => {
-            if (json.data?.data) {
-              allClientsData = allClientsData.concat(json.data.data);
-            }
-          });
-        }
-
-        // Map to UI shape
-        const mappedClients: Client[] = allClientsData.map((item) => ({
-          id: item.id,
-          name: item.name,
-          image: item.image
-            ? `${imageBasePath}${item.image}`
-            : "/placeholder-client.png",
-          category: item.category,
-          url: item.url || undefined,
-          location: item.location || undefined,
-        }));
-
-        setClients(mappedClients);
-      } catch (error) {
-        console.error("Failed to fetch clients:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllClients();
-  }, [baseUrl, imageBasePath]);
-
-  // Compute categories dynamically from fetched clients
-  const categories = useMemo(() => {
-    const categoryCount: Record<string, number> = {};
-    clients.forEach((client) => {
-      const cats = client.category.split(",").map((c) => c.trim());
-      cats.forEach((cat) => {
-        categoryCount[cat] = (categoryCount[cat] || 0) + 1;
-      });
-    });
-
-    const categoryList = [
-      { id: "all", name: "All Clients", icon: Building, count: clients.length },
-    ];
-
-    // Add each unique category
-    Object.entries(categoryCount).forEach(([id, count]) => {
-      const icon = {
-        website: Globe,
-        ecommerce: Package,
-        education: Book,
-        inventory: Package,
-        news: Newspaper,
-        cms: Globe,
-      }[id] || Globe;
-
-      const name = {
-        website: "Website/Software",
-        ecommerce: "E-commerce",
-        education: "Education",
-        inventory: "Inventory",
-        news: "News Portal",
-        cms: "CMS",
-      }[id] || id.charAt(0).toUpperCase() + id.slice(1);
-
-      categoryList.push({ id, name, icon, count });
-    });
-
-    return categoryList;
-  }, [clients]);
-
-  // Filter clients based on search and category
-  const displayedClients = useMemo(() => {
-    let filtered = clients;
-
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter((client) =>
-        client.category
-          .split(",")
-          .map((c) => c.trim())
-          .includes(selectedCategory)
-      );
-    }
-
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (client) =>
-          client.name.toLowerCase().includes(term) ||
-          client.location?.toLowerCase().includes(term) ||
-          client.category.toLowerCase().includes(term)
-      );
-    }
-
-    return filtered;
-  }, [clients, searchTerm, selectedCategory]);
-
-  // Skeleton loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        {/* Hero Skeleton */}
-        <section className="bg-gradient-to-r from-primary-200 to-primary-300 py-16">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center">
-              <Skeleton className="h-12 w-3/4 mx-auto mb-4 bg-white/20" />
-              <Skeleton className="h-6 w-2/3 mx-auto mb-8 bg-white/20" />
-              <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
-                <Skeleton className="flex-1 h-10 bg-white/20" />
-                <Skeleton className="w-24 h-10 bg-white/20" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Categories Skeleton */}
-        <section className="py-8 border-b">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-wrap gap-2 justify-center">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-10 w-28" />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Grid Skeleton */}
-        <section className="py-12">
-          <div className="container mx-auto px-4">
-            <Skeleton className="h-8 w-48 mb-2" />
-            <Skeleton className="h-4 w-32 mb-8" />
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <Card key={i} className="p-0 overflow-hidden">
-                  <CardContent className="p-4 md:p-6 flex flex-col items-center">
-                    <Skeleton className="w-24 h-24 md:w-32 md:h-32 mb-4 rounded-lg" />
-                    <Skeleton className="h-5 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-      </div>
-    );
-  }
+  const handleGetDemo = () => {
+    // Navigate to demo page, optionally pre-select this product
+    router.push(`/software-demo?product=${product.slug}`);
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-primary-200 to-primary-300 text-white py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Our Happy Clients
-            </h1>
-            <p className="text-xl text-white mb-8">
-              Trusted by {clients.length}+ organizations worldwide. We&apos;ve delivered
-              exceptional software solutions to businesses across multiple
-              industries.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-white" />
-                <Input
-                  placeholder="Search clients by name, location, or category..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/70"
-                />
-              </div>
-              <Button className="bg-white text-primary hover:bg-white/90 font-semibold cursor-pointer">
-                <Filter className="mr-2 h-4 w-4" />
-                Filter
-              </Button>
-            </div>
-          </div>
+    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-200 group pt-0">
+      {/* Image */}
+      <div className="relative h-54 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+        <Image
+          src={product.image}
+          alt={product.title}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
+        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors" />
+
+        {/* Category Badge */}
+        <div className="absolute top-4 right-4">
+          <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm">
+            {product.category}
+          </Badge>
         </div>
-      </section>
+      </div>
 
-      {/* Categories */}
-      <section className="py-8 border-b">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-wrap gap-2 justify-center">
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={
-                  selectedCategory === category.id ? "default" : "outline"
-                }
-                onClick={() => setSelectedCategory(category.id)}
-                className="gap-2"
-              >
-                <category.icon className="h-4 w-4" />
-                {category.name}
-                <Badge variant="secondary" className="ml-2">
-                  {category.count}
-                </Badge>
-              </Button>
-            ))}
-          </div>
-        </div>
-      </section>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-xl leading-tight line-clamp-2">
+          {product.title}
+        </CardTitle>
+        <CardDescription className="line-clamp-2">
+          {product.description}
+        </CardDescription>
+      </CardHeader>
 
-      {/* Clients Grid */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-2">
-              {selectedCategory === "all"
-                ? "All Clients"
-                : categories.find((c) => c.id === selectedCategory)?.name}
-            </h2>
-            <p className="text-muted-foreground">
-              Showing {displayedClients.length} of {clients.length} clients
-            </p>
-          </div>
-
-          {displayedClients.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
-              {displayedClients.map((client) => (
-                <a
-                  key={client.id}
-                  href={client.url || "#"}
-                  target={client.url ? "_blank" : undefined}
-                  rel={client.url ? "noopener noreferrer" : undefined}
-                  className="h-full"
-                >
-                  <ClientCard client={client} />
-                </a>
-              ))}
+      <CardContent className="pb-3 space-y-4">
+        {/* Features List */}
+        <div className="space-y-2">
+          {product.features.slice(0, 5).map((feature, index) => (
+            <div key={index} className="flex items-start text-sm">
+              <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+              <span className="text-muted-foreground">{feature}</span>
             </div>
-          ) : (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                <Search className="h-12 w-12 text-muted-foreground" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">No clients found</h3>
-              <p className="text-muted-foreground mb-4">
-                Try adjusting your search or filter criteria
-              </p>
-              <Button
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedCategory("all");
-                }}
-              >
-                Clear Filters
-              </Button>
+          ))}
+        </div>
+
+        {/* Stats */}
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          {product.rating && (
+            <div className="flex items-center">
+              <Star className="h-4 w-4 mr-1 text-yellow-500 fill-current" />
+              <span>{product.rating}</span>
+            </div>
+          )}
+          {product.users && (
+            <div className="flex items-center">
+              <Users className="h-4 w-4 mr-1" />
+              <span>{product.users}</span>
+            </div>
+          )}
+          {product.technologies && product.technologies.length > 0 && (
+            <div className="flex items-center">
+              <Zap className="h-4 w-4 mr-1" />
+              <span>{product.technologies.length} tech</span>
             </div>
           )}
         </div>
-      </section>
-    </div>
-  );
-}
-
-----------------------------------------------------------
-
-import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
-import { Building2, MapPin } from "lucide-react";
-
-export type ClientCardProps = {
-  client: {
-    id: number;
-    name: string;
-    image: string;
-    location?: string;
-    category?: string;
-  };
-};
-
-export function ClientCard({ client }: ClientCardProps) {
-  return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border-border/50">
-      <CardContent className="p-4 md:p-6">
-        <div className="flex flex-col items-center space-y-4">
-          {/* Logo Container */}
-          <div className="relative w-20 h-20 md:w-24 md:h-24 bg-muted/50 rounded-lg p-3 flex items-center justify-center">
-            {client.image ? (
-              <Image
-                src={client.image}
-                alt={client.name}
-                width={80}
-                height={80}
-                className="object-contain w-full h-full"
-                loading="lazy"
-                onError={(e) => {
-                  // Fallback to placeholder if image fails to load
-                  e.currentTarget.src = `/api/placeholder/80/80`;
-                }}
-              />
-            ) : (
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-primary" />
-              </div>
-            )}
-          </div>
-
-          {/* Client Info */}
-          <div className="text-center space-y-2">
-            <h3 className="font-semibold text-sm md:text-base line-clamp-2">
-              {client.name}
-            </h3>
-            
-            {client.location && (
-              <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                <MapPin className="w-3 h-3" />
-                <span className="line-clamp-1">{client.location}</span>
-              </div>
-            )}
-          </div>
-        </div>
       </CardContent>
+
+      <CardFooter className="flex gap-2 pt-3">
+        <Button
+          onClick={handleGetDemo}
+          className="flex-1 bg-orange-500 hover:bg-orange-600 text-white cursor-pointer"
+        >
+          Get Demo
+        </Button>
+        <Button
+          onClick={handleLearnMore}
+          variant="outline"
+          className="flex-1 cursor-pointer"
+        >
+          View Details
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
 
+-------------------------------------
 
-then, nextly implement and clean this same api for our happy clients
+// components/software/software-products-section.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Code, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { SoftwareCard, SoftwareProduct } from "./SoftwareCard";
+
+interface SoftwareAPIResponse {
+  id: number;
+  name: string;
+  slug: string;
+  hero_image: string;
+  hero: {
+    title: string;
+    description: string;
+    buttons: { text: string; link: string }[];
+    statistics: { value: string; label: string }[];
+  };
+  what_we_build: {
+    title: string;
+    description: string;
+    components: { title: string; description: string }[];
+  };
+  key_features: {
+    title: string;
+    subtitle: string;
+    features: { category: string; items: string[] }[];
+  };
+  // other fields omitted for brevity
+}
+
+// Helper to map API product to SoftwareProduct
+function mapAPIToSoftwareProduct(item: SoftwareAPIResponse): SoftwareProduct {
+  // Extract features from key_features (flatten first category items or combine)
+  const features: string[] = [];
+  if (item.key_features?.features?.length) {
+    // Take up to 5 items from the first category, or combine all categories
+    item.key_features.features.slice(0, 2).forEach((cat) => {
+      cat.items.slice(0, 3).forEach((feat) => features.push(feat));
+    });
+  }
+  // Fallback if no features
+  if (features.length === 0) {
+    features.push("Customizable solution", "Scalable architecture", "24/7 Support");
+  }
+
+  return {
+    slug: item.slug, // use slug as id for routing
+    title: item.name,
+    description: item.hero?.description || "",
+    image: item.hero_image || "/placeholder-software.jpg",
+    category: "Software", // Could be derived from first component or static
+    features: features.slice(0, 5),
+    // Optional fields
+    rating: 4.8,
+    users: "50+",
+    technologies: ["React", "Node.js", "Laravel"].slice(0, 3),
+  };
+}
+
+export function SoftwareProductsSection() {
+  const router = useRouter();
+  const [products, setProducts] = useState<SoftwareProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  useEffect(() => {
+    const fetchSoftware = async () => {
+      if (!baseUrl) return;
+      try {
+        const res = await fetch(`${baseUrl}/software-products`);
+        if (!res.ok) throw new Error("Failed to fetch");
+        const json = await res.json();
+        const items = json?.data?.data || [];
+        const mapped = items.map(mapAPIToSoftwareProduct);
+        setProducts(mapped);
+      } catch (error) {
+        console.error("Error fetching software products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSoftware();
+  }, [baseUrl]);
+
+  // Skeleton loading
+  if (loading) {
+    return (
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <Skeleton className="h-6 w-48 mx-auto mb-4" />
+            <Skeleton className="h-10 w-3/4 mx-auto mb-4" />
+            <Skeleton className="h-6 w-2/3 mx-auto" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-[400px] rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Show only first 9 products on home page
+  const displayProducts = products.slice(0, 9);
+
+  return (
+    <section id="software" className="py-16 bg-white">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <Badge variant="outline" className="mb-4 px-4 py-1 text-sm font-semibold">
+            <Code className="w-4 h-4 mr-2" />
+            Our Software Solutions
+          </Badge>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Custom Software for Your Business
+          </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+            We develop robust, scalable software solutions tailored to your
+            specific business needs. From enterprise systems to mobile apps, we
+            deliver quality that drives growth.
+          </p>
+        </div>
+
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          {displayProducts.map((product) => (
+            <SoftwareCard key={product.slug} product={product} />
+          ))}
+        </div>
+
+        {/* <div className="text-center">
+          <Button
+            onClick={() => router.push(`/software`)}
+            variant="outline"
+            size="lg"
+            className="border-primary text-primary hover:bg-primary hover:text-white cursor-pointer"
+          >
+            View All Products <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div> */}
+      </div>
+    </section>
+  );
+}
+
+
+--------------------------------------------------------
+
+
+then, nextly implement and clean this software api same api 

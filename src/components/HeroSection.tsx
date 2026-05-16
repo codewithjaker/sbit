@@ -429,49 +429,19 @@ import {
   Briefcase,
 } from "lucide-react";
 import Image from "next/image";
+import { fetchHeroSection } from "@/services/hero.service";
+import type { HeroSectionAPI, CTA, Stat, Feature } from "@/types/hero";
 
 // ─── Safe JSON parser ───
 function safeJsonParse<T>(value: string | null | undefined, defaultValue: T): T {
   if (!value) return defaultValue;
   try {
     let parsed = JSON.parse(value);
-    // Handle double‑encoded strings
-    while (typeof parsed === "string") {
-      parsed = JSON.parse(parsed);
-    }
+    while (typeof parsed === "string") parsed = JSON.parse(parsed); // double‑encoded
     return parsed as T;
   } catch {
     return defaultValue;
   }
-}
-
-// ─── Types ───
-interface HeroSectionAPI {
-  id: number;
-  badge_text: string;
-  heading: string;
-  sub_heading: string;
-  typed_words: string;
-  cta: string;
-  stats: string;
-  features: string;
-  hero_image: string;
-}
-
-interface CTA {
-  primary?: { text: string; link: string };
-  secondary?: { text: string; link: string };
-}
-
-interface Stat {
-  value: string;
-  label: string;
-  icon: string; // key for iconMap
-}
-
-interface Feature {
-  title: string;
-  description: string;
 }
 
 // ─── Icon map ───
@@ -510,7 +480,6 @@ const DEFAULT_CTA: CTA = {
   primary: { text: "Explore Courses", link: "/courses" },
 };
 
-// ─── Component ───
 export default function HeroSection() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -519,38 +488,17 @@ export default function HeroSection() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
   const imageBasePath = process.env.NEXT_PUBLIC_IMAGE_PATH || "";
 
-  // Fetch hero data
+  // Fetch hero data via service
   useEffect(() => {
-    if (!baseUrl) {
-      console.error("Missing NEXT_PUBLIC_API_URL");
+    const load = async () => {
+      const data = await fetchHeroSection();
+      setHeroData(data);
       setLoading(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    const fetchData = async () => {
-      try {
-        const res = await fetch(`${baseUrl}/get-hero-section`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error("Failed to fetch");
-        const json = await res.json();
-        const data = json?.data?.data?.[0] || null;
-        setHeroData(data);
-      } catch (error) {
-        if (!controller.signal.aborted) {
-          console.error("Error fetching hero section:", error);
-        }
-      } finally {
-        setLoading(false);
-      }
     };
-    fetchData();
-    return () => controller.abort();
-  }, [baseUrl]);
+    load();
+  }, []);
 
   // ─── Parse API data or use defaults ───
   const words: string[] = useMemo(
@@ -570,12 +518,12 @@ export default function HeroSection() {
     return Array.isArray(parsed) ? parsed : [];
   }, [heroData]);
 
-  const heroImage =
-    heroData?.hero_image?.startsWith("http")
+  // Hero image – use full URL if external, otherwise prepend image base path
+  const heroImage = heroData?.hero_image
+    ? heroData.hero_image.startsWith("http")
       ? heroData.hero_image
-      : heroData?.hero_image
-      ? `${imageBasePath}${heroData.hero_image}`
-      : "/hero.png";
+      : `${imageBasePath}${heroData.hero_image}`
+    : "/hero.png";
 
   const badgeText = heroData?.badge_text || "Top Rated IT Institute in Feni";
   const headingText = heroData?.heading || "Master Modern";

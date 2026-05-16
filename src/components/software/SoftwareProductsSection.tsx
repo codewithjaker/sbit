@@ -8,57 +8,36 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Code, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { SoftwareCard, SoftwareProduct } from "./SoftwareCard";
+import { getSoftwareProducts } from "@/services/software.service";
+import type { Software } from "@/types/software";
 
-interface SoftwareAPIResponse {
-  id: number;
-  name: string;
-  slug: string;
-  hero_image: string;
-  hero: {
-    title: string;
-    description: string;
-    buttons: { text: string; link: string }[];
-    statistics: { value: string; label: string }[];
-  };
-  what_we_build: {
-    title: string;
-    description: string;
-    components: { title: string; description: string }[];
-  };
-  key_features: {
-    title: string;
-    subtitle: string;
-    features: { category: string; items: string[] }[];
-  };
-  // other fields omitted for brevity
-}
-
-// Helper to map API product to SoftwareProduct
-function mapAPIToSoftwareProduct(item: SoftwareAPIResponse): SoftwareProduct {
-  // Extract features from key_features (flatten first category items or combine)
+// ---------- Helper: map the full Software to card shape ----------
+function toSoftwareProduct(software: Software): SoftwareProduct {
+  // extract features from the first two key‑feature categories (up to 5 total)
   const features: string[] = [];
-  if (item.key_features?.features?.length) {
-    // Take up to 5 items from the first category, or combine all categories
-    item.key_features.features.slice(0, 2).forEach((cat) => {
-      cat.items.slice(0, 3).forEach((feat) => features.push(feat));
+  if (software.keyFeatures?.features?.length) {
+    software.keyFeatures.features.slice(0, 2).forEach((cat) => {
+      cat.items.slice(0, 3).forEach((item) => features.push(item));
     });
   }
-  // Fallback if no features
   if (features.length === 0) {
-    features.push("Customizable solution", "Scalable architecture", "24/7 Support");
+    features.push(
+      "Customizable solution",
+      "Scalable architecture",
+      "24/7 Support"
+    );
   }
 
   return {
-    slug: item.slug, // use slug as id for routing
-    title: item.name,
-    description: item.hero?.description || "",
-    image: item.hero_image || "/placeholder-software.jpg",
-    category: "Software", // Could be derived from first component or static
+    slug: software.slug,
+    title: software.name,
+    description: software.hero?.description || "",
+    image: software.heroImage || "/placeholder-software.jpg",
+    category: "Software", // or use the first component title if you prefer
     features: features.slice(0, 5),
-    // Optional fields
     rating: 4.8,
     users: "50+",
-    technologies: ["React", "Node.js", "Laravel"].slice(0, 3),
+    technologies: ["React", "Node.js", "Laravel"],
   };
 }
 
@@ -67,26 +46,15 @@ export function SoftwareProductsSection() {
   const [products, setProducts] = useState<SoftwareProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-
   useEffect(() => {
-    const fetchSoftware = async () => {
-      if (!baseUrl) return;
-      try {
-        const res = await fetch(`${baseUrl}/software-products`);
-        if (!res.ok) throw new Error("Failed to fetch");
-        const json = await res.json();
-        const items = json?.data?.data || [];
-        const mapped = items.map(mapAPIToSoftwareProduct);
-        setProducts(mapped);
-      } catch (error) {
-        console.error("Error fetching software products:", error);
-      } finally {
-        setLoading(false);
-      }
+    const load = async () => {
+      const allSoftware = await getSoftwareProducts(); // from service
+      const mapped = allSoftware.slice(0, 9).map(toSoftwareProduct); // show max 9
+      setProducts(mapped);
+      setLoading(false);
     };
-    fetchSoftware();
-  }, [baseUrl]);
+    load();
+  }, []);
 
   // Skeleton loading
   if (loading) {
@@ -108,13 +76,9 @@ export function SoftwareProductsSection() {
     );
   }
 
-  // Show only first 9 products on home page
-  const displayProducts = products.slice(0, 9);
-
   return (
     <section id="software" className="py-16 bg-white">
       <div className="container mx-auto px-4">
-        {/* Header */}
         <div className="text-center mb-12">
           <Badge variant="outline" className="mb-4 px-4 py-1 text-sm font-semibold">
             <Code className="w-4 h-4 mr-2" />
@@ -130,13 +94,13 @@ export function SoftwareProductsSection() {
           </p>
         </div>
 
-        {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {displayProducts.map((product) => (
+          {products.map((product) => (
             <SoftwareCard key={product.slug} product={product} />
           ))}
         </div>
 
+        {/* Optional: View All Products button (uncomment if needed) */}
         {/* <div className="text-center">
           <Button
             onClick={() => router.push(`/software`)}
